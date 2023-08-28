@@ -20,7 +20,7 @@ class _LoginWithPhoneState extends State<LoginWithPhone> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Login"),
+        title: const Text("Login"),
         centerTitle: true,
       ),
       body: Center(
@@ -32,7 +32,7 @@ class _LoginWithPhoneState extends State<LoginWithPhone> {
               TextFormField(
                 controller: phonecontroller,
                 keyboardType: TextInputType.phone,
-                decoration: InputDecoration(hintText: 'Phone Number'),
+                decoration: const InputDecoration(hintText: 'Phone Number'),
               ),
               const SizedBox(
                 height: 30,

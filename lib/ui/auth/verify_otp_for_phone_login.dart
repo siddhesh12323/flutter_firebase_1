@@ -34,7 +34,7 @@ class _VerifyOTPState extends State<VerifyOTP> {
               TextFormField(
                 controller: otpcontroller,
                 keyboardType: TextInputType.phone,
-                decoration: InputDecoration(hintText: 'Enter the OTP'),
+                decoration: const InputDecoration(hintText: 'Enter the OTP'),
               ),
               const SizedBox(
                 height: 30,
@@ -54,7 +54,7 @@ class _VerifyOTPState extends State<VerifyOTP> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => PostsScreen()));
+                              builder: (context) => const PostsScreen()));
                     } catch (e) {
                       loading = false;
                       Utils().toast(e.toString());

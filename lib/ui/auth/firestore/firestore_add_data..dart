@@ -1,24 +1,24 @@
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase_1/utils/utils.dart';
 import 'package:flutter_firebase_1/widgets/round_button.dart';
 
-class AddPostScreen extends StatefulWidget {
-  const AddPostScreen({super.key});
+class AddFirestorePostScreen extends StatefulWidget {
+  const AddFirestorePostScreen({super.key});
 
   @override
-  State<AddPostScreen> createState() => _AddPostScreenState();
+  State<AddFirestorePostScreen> createState() => _AddFirestorePostScreenState();
 }
 
-class _AddPostScreenState extends State<AddPostScreen> {
+class _AddFirestorePostScreenState extends State<AddFirestorePostScreen> {
   bool loading = false;
   final postController = TextEditingController();
-  final databaseRef = FirebaseDatabase.instance.ref('Post');
+  final fireStoreRef = FirebaseFirestore.instance.collection('users');
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Post'),
+        title: const Text('Add Firestore Post'),
         centerTitle: true,
       ),
       body: Padding(
@@ -47,19 +47,19 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     });
                     String id =
                         DateTime.now().millisecondsSinceEpoch.toString();
-                    databaseRef.child(id).set({
+                    fireStoreRef.doc(id).set({
                       'title': postController.text.toString(),
                       'id': id
                     }).then((value) {
+                      Utils().toast("Posted successfully!");
                       setState(() {
                         loading = false;
                       });
-                      Utils().toast('Posted successfully!');
                     }).onError((error, stackTrace) {
+                      Utils().toast(error.toString());
                       setState(() {
                         loading = false;
                       });
-                      Utils().toast(error.toString());
                     });
                   })
             ],

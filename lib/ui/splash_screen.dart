@@ -12,14 +12,13 @@ class _SplashScreenState extends State<SplashScreen> {
   SplashServices services = SplashServices();
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     services.isLogin(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: Text('MyApp'),
       ),

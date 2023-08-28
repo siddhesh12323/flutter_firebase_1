@@ -96,7 +96,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextButton(
                     onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => LoginScreen()));
+                          builder: (context) => const LoginScreen()));
                     },
                     child: const Text('Login'))
               ],

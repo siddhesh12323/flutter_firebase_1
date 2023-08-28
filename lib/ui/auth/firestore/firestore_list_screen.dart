@@ -1,23 +1,24 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_firebase_1/ui/posts/add_post.dart';
+import 'package:flutter_firebase_1/ui/auth/firestore/firestore_add_data..dart';
 import 'package:flutter_firebase_1/utils/utils.dart';
 
-class PostsScreen extends StatefulWidget {
-  const PostsScreen({super.key});
+class FireStoreScreen extends StatefulWidget {
+  const FireStoreScreen({super.key});
 
   @override
-  State<PostsScreen> createState() => _PostsScreenState();
+  State<FireStoreScreen> createState() => _FireStoreScreenState();
 }
 
-class _PostsScreenState extends State<PostsScreen> {
+class _FireStoreScreenState extends State<FireStoreScreen> {
   final auth = FirebaseAuth.instance;
-  final ref = FirebaseDatabase.instance.ref('Post');
-  final searchController = TextEditingController();
   final editController = TextEditingController();
+  final searchController = TextEditingController();
+  final fireStoreRef =
+      FirebaseFirestore.instance.collection('users').snapshots();
+  CollectionReference ref = FirebaseFirestore.instance.collection('users');
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -27,7 +28,7 @@ class _PostsScreenState extends State<PostsScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-            title: const Text('Posts'),
+            title: const Text('Firestore Posts'),
             centerTitle: true,
             automaticallyImplyLeading: false,
             actions: [
@@ -59,29 +60,38 @@ class _PostsScreenState extends State<PostsScreen> {
         body: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
               child: TextFormField(
-                controller: searchController,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                  hintText: 'Search',
+                      borderRadius: BorderRadius.circular(10)),
                 ),
+                controller: searchController,
                 onChanged: (value) {
                   setState(() {});
                 },
               ),
             ),
-            Expanded(
-              child: FirebaseAnimatedList(
-                  query: ref,
-                  defaultChild: const Text('Loading...'),
-                  itemBuilder: (context, snapshot, animation, index) {
-                    final title = snapshot.child('title').value.toString();
+            StreamBuilder<QuerySnapshot>(
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                }
+                if (snapshot.hasError) {
+                  return const Text("Something went wrong :(");
+                }
+                return Expanded(
+                    child: ListView.builder(
+                  itemCount: snapshot.data!.docs.length,
+                  itemBuilder: (context, index) {
+                    String title =
+                        snapshot.data!.docs[index].get('title').toString();
                     if (searchController.text.isEmpty) {
                       return ListTile(
-                        title: Text(snapshot.child('title').value.toString()),
-                        subtitle: Text(snapshot.child('id').value.toString()),
+                        title: Text(title),
+                        subtitle: Text(
+                            snapshot.data!.docs[index].get('id').toString()),
                         trailing: PopupMenuButton(
                           itemBuilder: (context) => [
                             PopupMenuItem(
@@ -89,9 +99,10 @@ class _PostsScreenState extends State<PostsScreen> {
                               onTap: () {
                                 Navigator.pop(context);
                                 showAlertDialogForUpdate(
-                                  title,
-                                  snapshot.child('id').value.toString(),
-                                );
+                                    title,
+                                    snapshot.data!.docs[index]
+                                        .get('id')
+                                        .toString());
                               },
                               leading: const Icon(Icons.edit),
                               title: const Text("Edit"),
@@ -102,7 +113,11 @@ class _PostsScreenState extends State<PostsScreen> {
                               title: const Text("Delete"),
                               onTap: () {
                                 Navigator.pop(context);
-                                showAlertDialogForDelete(snapshot);
+                                showAlertDialogForDelete(
+                                    snapshot,
+                                    snapshot.data!.docs[index]
+                                        .get('id')
+                                        .toString());
                               },
                             )),
                           ],
@@ -113,20 +128,24 @@ class _PostsScreenState extends State<PostsScreen> {
                         .toLowerCase()
                         .contains(searchController.text.toLowerCase())) {
                       return ListTile(
-                        title: Text(snapshot.child('title').value.toString()),
-                        subtitle: Text(snapshot.child('id').value.toString()),
+                        title: Text(title),
+                        subtitle: Text(
+                            snapshot.data!.docs[index].get('id').toString()),
                       );
                     } else {
                       return Container();
                     }
-                  }),
+                  },
+                ));
+              },
+              stream: fireStoreRef,
             ),
           ],
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const AddPostScreen()));
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => const AddFirestorePostScreen()));
           },
           child: const Icon(Icons.add),
         ),
@@ -155,14 +174,14 @@ class _PostsScreenState extends State<PostsScreen> {
                   child: const Text("Cancel")),
               TextButton(
                   onPressed: () {
+                    Navigator.pop(context);
                     ref
-                        .child(id)
+                        .doc(id)
                         .update({'title': editController.text}).then((value) {
                       Utils().toast("Post Updated");
                     }).onError((error, stackTrace) {
                       Utils().toast(error.toString());
                     });
-                    Navigator.pop(context);
                   },
                   child: const Text("Ok"))
             ],
@@ -170,7 +189,8 @@ class _PostsScreenState extends State<PostsScreen> {
         });
   }
 
-  Future<void> showAlertDialogForDelete(DataSnapshot snapshot) async {
+  Future<void> showAlertDialogForDelete(
+      AsyncSnapshot<QuerySnapshot<Object?>> snapshot, String id) async {
     return showDialog(
         context: context,
         builder: (context) {
@@ -184,7 +204,11 @@ class _PostsScreenState extends State<PostsScreen> {
                   child: const Text("Cancel")),
               TextButton(
                   onPressed: () {
-                    ref.child(snapshot.child('id').value.toString()).remove();
+                    ref.doc(id).delete().then((value) {
+                      Utils().toast("Post Deleted!");
+                    }).onError((error, stackTrace) {
+                      Utils().toast(error.toString());
+                    });
                     Navigator.pop(context);
                   },
                   child: const Text("Delete"))

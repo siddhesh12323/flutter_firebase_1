@@ -23,7 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     emailController.dispose();
     passwordController.dispose();
@@ -115,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => SignupScreen()));
+                                builder: (context) => const SignupScreen()));
                       },
                       child: const Text('Sign Up'))
                 ],
@@ -144,8 +143,8 @@ class _LoginScreenState extends State<LoginScreen> {
             email: emailController.text, password: passwordController.text)
         .then((value) {
       Utils().toast("${value.user!.email.toString()} logged in!");
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => PostsScreen()));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const PostsScreen()));
       setState(() {
         loading = false;
       });

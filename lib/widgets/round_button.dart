@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class RoundButton extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
@@ -22,13 +23,13 @@ class RoundButton extends StatelessWidget {
         height: 50,
         child: Center(
             child: loading
-                ? CircularProgressIndicator(
+                ? const CircularProgressIndicator(
                     strokeWidth: 2.5,
                     color: Colors.white,
                   )
                 : Text(
                     title,
-                    style: TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.white),
                   )),
       ),
     );
